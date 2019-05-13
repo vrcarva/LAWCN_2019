@@ -3,8 +3,15 @@
 Created on Tue Feb 27 18:54:30 2018
 
 @author: Vinícius Rezende Carvalho
-Simulates EPILEPTOR model (with or without periodic stimulation) and extract features periodically 
-(one segment for each stimuli)
+Simulates EPILEPTOR model (with or without periodic stimulation) and extract features
+
+Original paper: 
+Jirsa VK, Stacey WC, Quilichini PP, et al (2014) On the nature of seizure dynamics. Brain 137:2210–2230. doi: 10.1093/brain/awu133
+
+Vinícius Rezende Carvalho  
+Programa de Pós Graduação em Engenharia Elétrica - Universidade Federal de Minas Gerais, Belo Horizonte, Brasil  
+Núcleo de Neurociências  
+vrcarva@ufmg.br
 
 """
 import numpy as np

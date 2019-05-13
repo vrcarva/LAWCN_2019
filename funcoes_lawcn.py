@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Functions used in LAWN_epileptor.py
-
-@author: John
 """
 import numpy as np
 from scipy.stats import kurtosis
@@ -11,6 +9,46 @@ from scipy.stats import skew
 from scipy import signal
 import matplotlib.pyplot as plt
 
+#%% EPILEPTOR
+def eulerEpileptor(y, n, u, h, P ): #Model ODEs
+    #y = current state, n = number of states, x = current time sample, h = timestep, P = parameters
+    #y = [0:x1 1:y1 2:z 3:x2 4:y2 5:g]
+    
+    dydx = np.zeros(n)
+    sigmaNoise = np.array([0.025,0.025,0.0,0.25,0.25,0.])*0.01
+    #sigmaNoise = np.zeros(n)
+
+    dydx[0] = y[1] - y[2] +  P["Iext1"] - f1(y[0],y[3],y[2])
+    dydx[1] = P["y0"] - 5*(y[0]**2) - y[1]
+    dydx[2] = (4*(y[0]-P["x0"])-y[2])/P["tau0"]
+    dydx[3] = -y[4] + y[3] - y[3]**3 + P["Iext2"] + 2*y[5] - 0.3*(y[2] - 3.5)
+    dydx[4] = (-y[4]+ f2(y[3]))/P["tau2"]
+    dydx[5] = -P["gamma"]*(y[5]-0.1*y[0])
+    
+    yout = np.empty((0))
+    for i in range(n):
+        yout = np.append(yout,y[i] + 0.01*u[i] + h *dydx[i]+ dW(h)*np.sqrt(sigmaNoise[i])) 
+    return yout
+
+
+#define functions
+def f1(x1,x2,z):
+    if x1 <0:
+        return x1**3 - 3.*(x1**2)
+    else:
+         return (x2 - 0.6*((z - 4)**2))*x1 
+     
+def f2(x2):
+    if x2 < -0.25:
+        return 0.
+    else:
+        return 6.*(x2+0.25)
+    
+def dW(delta_t):
+    return np.random.normal(loc = 0.0, scale = np.sqrt(delta_t))
+    
+
+#%%
 def fun_extractERPfeatsUni(erp,preERP,Fs):
     #Extracts univariate features from erp signal
     #preERP is the baseline signal
@@ -79,41 +117,8 @@ def fun_extractERPfeatsMultivar(erpSynch,erpSynchFilt,Fs):
     
     return featsOut
 
-#define functions
-def f1(x1,x2,z):
-    if x1 <0:
-        return x1**3 - 3.*(x1**2)
-    else:
-         return (x2 - 0.6*((z - 4)**2))*x1 
-     
-def f2(x2):
-    if x2 < -0.25:
-        return 0.
-    else:
-        return 6.*(x2+0.25)
-    
-def dW(delta_t):
-    return np.random.normal(loc = 0.0, scale = np.sqrt(delta_t))
-    
-def eulerEpileptor(y, n, u, h, P ): #Model ODEs
-    #y = current state, n = number of states, x = current time sample, h = timestep, P = parameters
-    #y = [0:x1 1:y1 2:z 3:x2 4:y2 5:g]
-    
-    dydx = np.zeros(n)
-    sigmaNoise = np.array([0.025,0.025,0.0,0.25,0.25,0.])*0.01
-    #sigmaNoise = np.zeros(n)
 
-    dydx[0] = y[1] - y[2] +  P["Iext1"] - f1(y[0],y[3],y[2])
-    dydx[1] = P["y0"] - 5*(y[0]**2) - y[1]
-    dydx[2] = (4*(y[0]-P["x0"])-y[2])/P["tau0"]
-    dydx[3] = -y[4] + y[3] - y[3]**3 + P["Iext2"] + 2*y[5] - 0.3*(y[2] - 3.5)
-    dydx[4] = (-y[4]+ f2(y[3]))/P["tau2"]
-    dydx[5] = -P["gamma"]*(y[5]-0.1*y[0])
     
-    yout = np.empty((0))
-    for i in range(n):
-        yout = np.append(yout,y[i] + 0.01*u[i] + h *dydx[i]+ dW(h)*np.sqrt(sigmaNoise[i])) 
-    return yout    
 #%
 def LAWCN_figFeat(feats,tFeats,yline,ytext):
     plt.figure()
